@@ -12,7 +12,7 @@ class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **other_field):
         """create,save and return user"""
-        user = self.model(email=email, **other_field)
+        user = self.model(email=self.normalize_email(email), **other_field)
         user.set_password(password)
         user.save(using=self._db)
 
