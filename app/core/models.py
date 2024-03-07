@@ -3,7 +3,8 @@ Custom user model
 """
 
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser,PermissionsMixin,BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, \
+    PermissionsMixin, BaseUserManager
 
 
 class UserManager(BaseUserManager):
@@ -17,11 +18,12 @@ class UserManager(BaseUserManager):
 
         return user
 
+
 class User(AbstractBaseUser, PermissionsMixin):
     """Make custom user model extends from AbstractBaseUser"""
 
     # declare fields
-    email = models.EmailField(unique=True,max_length=100)
+    email = models.EmailField(unique=True, max_length=100)
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
