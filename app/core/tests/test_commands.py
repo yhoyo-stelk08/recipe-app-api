@@ -15,3 +15,8 @@ class CommandTest(SimpleTestCase):
     def test_wait_for_db_ready(self,patched_check):
         """ Test command to wait if database ready """
         patched_check.return_value = True
+
+        # call command which declare inside core.management.commands
+        call_command('wait_for_db')
+
+        patched_check.assert_called_once_with(database='default')
