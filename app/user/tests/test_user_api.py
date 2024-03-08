@@ -151,7 +151,6 @@ class PrivateUseerApiTests(TestCase):
 
     def test_post_method_not_allowed_for_me(self):
         """Test for post method not allowed for this endpoint"""
-        # self.client.force_authenticate(user=get_user_model().objects.create_user(email='test@example.com', password='testing1q2w3e'))
         res = self.client.post(ME_URL, {})
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
