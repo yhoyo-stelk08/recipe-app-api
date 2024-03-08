@@ -11,6 +11,7 @@ from rest_framework import status
 
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
+ME_URL = reverse('user:me')
 
 
 def create_user(**params):
@@ -55,6 +56,10 @@ class PublicUserApiTests(TestCase):
         res = self.client.post(CREATE_USER_URL, payload)
 
         # Test if the user already exists in database , it will return an error
+        user_exists = get_user_model().objects.filter(
+            email=payload['email']
+        ).exists()
+        self.assertFalse(user_exists)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_password_too_short_error(self):
@@ -72,11 +77,6 @@ class PublicUserApiTests(TestCase):
 
         # Test if the password is too short, it will return an error
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-        user_exists = get_user_model().objects.filter(
-            email=payload['email']
-        ).exists()
-        self.assertFalse(user_exists)
 
     def test_create_token_for_user(self):
         """Test generate token for valid credentials."""
@@ -117,3 +117,56 @@ class PublicUserApiTests(TestCase):
 
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_unauthorized_user(self):
+        """Test authentication required for users."""
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateUseerApiTests(TestCase):
+    """Test the private features of the user api
+    that require authentication."""
+
+    def setUp(self):
+        self.user = create_user(
+            email='test@example.com',
+            password='testing1q2w3e',
+            name="Test User"
+        )
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_retrieve_user_profile_success(self):
+        """Test retrieving profile for logged in users."""
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, {
+            'name': self.user.name,
+            'email': self.user.email,
+        })
+
+    def test_post_method_not_allowed_for_me(self):
+        """Test for post method not allowed for this endpoint"""
+        # self.client.force_authenticate(user=get_user_model().objects.create_user(email='test@example.com', password='testing1q2w3e'))
+        res = self.client.post(ME_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_user_profile(self):
+        """Test for updating user data in profile
+        for authenticated users. """
+        payload = {
+            'name': 'New Test Name',
+            'password': 'newpassword1q2w3e',
+        }
+
+        res = self.client.patch(ME_URL, payload)
+
+        self.user.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.name, payload['name'])
+        self.assertTrue(self.user.check_password(payload['password']))
