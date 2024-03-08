@@ -12,19 +12,19 @@ from rest_framework import status
 CREATE_USER_URL = reverse('user:create')
 
 
-def create_user(**kwargs):
+def create_user(**params):
     """Create and return user"""
-    return get_user_model().objects.create_user(**kwargs)
+    return get_user_model().objects.create_user(**params)
 
 
 class PublicUserApiTests(TestCase):
     """Test the public features of the user api"""
 
     def setUp(self):
-        self.client = APIClient
+        self.client = APIClient()
 
     def test_create_user(self):
-        """Test creating user is successfully."""
+        """Test creating a user is successful."""
         payload = {
             'email': 'test@example.com',
             'password': 'testing1q2w3e',
@@ -50,7 +50,7 @@ class PublicUserApiTests(TestCase):
             'name': 'Test User',
         }
 
-        create_user(payload)
+        create_user(**payload)
         res = self.client.post(CREATE_USER_URL, payload)
 
         # Test if the user already exists in database , it will return an error
@@ -64,12 +64,15 @@ class PublicUserApiTests(TestCase):
             'name': 'Test user',
         }
 
-        create_user(payload)
         res = self.client.post(CREATE_USER_URL, payload)
+
+        # print(res.data)
+        # print(res.data.get('password'))
 
         # Test if the password is too short, it will return an error
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
         user_exists = get_user_model().objects.filter(
-            email=payload['email']).exists()
+            email=payload['email']
+        ).exists()
         self.assertFalse(user_exists)
