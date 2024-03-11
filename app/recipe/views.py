@@ -33,18 +33,19 @@ class BaseClassRecipeAttrViewset(
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user).order_by('-name')
 
+
 @extend_schema_view(
     list=extend_schema(
         parameters=[
             OpenApiParameter(
                 'tags',
                 OpenApiTypes.STR,
-                description='Comma separated list of tags IDs to filter.'
+                description='Comma separated list of tags IDs to filter'
             ),
             OpenApiParameter(
                 'ingredients',
                 OpenApiTypes.STR,
-                description='Comma separated list of ingredients IDs to filter.'
+                description='Comma separated list of ingredients IDs to filter'
             )
         ]
     )
