@@ -9,7 +9,6 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 from core.models import (
-    Recipe,
     Ingredient,
 )
 
@@ -60,9 +59,10 @@ class PrivateIngredientsApiTest(TestCase):
         create_ingredient(user=self.user, name='Pepper')
 
         res = self.client.get(INGREDIENT_URL)
-
-        ingredients = Ingredient.objects.all().order_by('name')
+        # print(res.data)
+        ingredients = Ingredient.objects.all().order_by('-name')
         serializer = IngredientSerializer(ingredients, many=True)
+        # print(serializer.data)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
