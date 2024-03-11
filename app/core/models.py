@@ -14,7 +14,7 @@ def recipe_image_file_path(instance, filename):
     """Generate file path for a new recipe image."""
     file_extension = os.path.splitext(filename)[1]
     filename = f'{uuid.uuid4()}{file_extension}'
-
+    # print(os.path.join('uploads', 'recipe', filename))
     return os.path.join('uploads', 'recipe', filename)
 
 
