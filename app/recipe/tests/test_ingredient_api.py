@@ -1,6 +1,8 @@
 """
 Test Ingredients API
 """
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -10,6 +12,7 @@ from rest_framework import status
 
 from core.models import (
     Ingredient,
+    Recipe,
 )
 
 from recipe.serializers import IngredientSerializer
@@ -113,3 +116,46 @@ class PrivateIngredientsApiTest(TestCase):
         # print(ingredient)
         self.assertEqual(len(ingredient), 0)
         self.assertFalse(ingredient.exists())
+
+    def test_ingredients_assign_to_recipe(self):
+        """Test filtering ingredients assign to a recipe."""
+        recipe1 = Recipe.objects.create(
+            user=self.user,
+            title='Mie Goreng Jawa',
+            time_minutes=20,
+            price=Decimal('2.99'),
+        )
+        ingredient1 = create_ingredient(user=self.user, name='Mie')
+        ingredient2 = create_ingredient(user=self.user, name='Wortel')
+        recipe1.ingredients.add(ingredient1)
+
+        res = self.client.get(INGREDIENT_URL, {'assigned_only': 1})
+
+        s1 = IngredientSerializer(ingredient1)
+        s2 = IngredientSerializer(ingredient2)
+
+        self.assertIn(s1.data, res.data)
+        self.assertNotIn(s2.data, res.data)
+
+    def test_filtered_ingredients_unique(self):
+        """Test filtered ingredients return a unique list."""
+        ingredient1 = Ingredient.objects.create(user=self.user, name='Eggs')
+        Ingredient.objects.create(user=self.user, name='Lentils')
+        recipe1 = Recipe.objects.create(
+            user=self.user,
+            title='Telur orak arik',
+            time_minutes=5,
+            price=Decimal('0.5'),
+        )
+        recipe2 = Recipe.objects.create(
+            user=self.user,
+            title='Telur mata sapi',
+            time_minutes=5,
+            price=Decimal('0.5'),
+        )
+        recipe1.ingredients.add(ingredient1)
+        recipe2.ingredients.add(ingredient1)
+
+        res = self.client.get(INGREDIENT_URL, {'assigned_only': 1})
+
+        self.assertEqual(len(res.data), 1)
