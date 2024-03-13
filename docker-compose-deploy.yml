@@ -14,24 +14,24 @@ services:
       - DB_PASS=${DB_PASS}
       - SECRET_KEY=${DJANGO_SECRET_KEY}
       - ALLOWED_HOST=${DJANGO_ALLOWED_HOST}
-    depends-on:
+    depends_on:
       - db
 
-db:
-  images: postgres:13-alpine
-  restart: always
-  volumes:
-    - postgres-data:/var/lib/postgresql/data
-  environment:
-    - POSTGRES_DB=${DB_NAME}
-    - POSTGRES_USER=${DB_USER}
-    - POSTGRESS_PASSWORD=${DB_PASS}
-
-proxy:
-  build:
-    context: ./proxy
+  db:
+    image: postgres:13-alpine
     restart: always
-    depends-on:
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+
+  proxy:
+    build:
+      context: ./proxy
+    restart: always
+    depends_on:
       - app
     ports:
       - 80:8000
